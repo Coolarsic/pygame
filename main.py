@@ -43,7 +43,7 @@ def level_1():
     pygame.display.update()
     time.sleep(4)
     screen.blit(bg, (0, 0))
-    player, level_x, level_y = generate_level(load_level('level_1.txt'))
+    player, level_x, level_y, portal = generate_level(load_level('level_1.txt'))
     pygame.display.flip()
 
     while True:
@@ -59,6 +59,8 @@ def level_1():
                 player.update()
         camera = Camera()
         camera.update(player)
+        portal.update()
+
         for sprite in all_sprites:
             camera.apply(sprite)
         pygame.display.flip()
@@ -200,6 +202,8 @@ class Player(pygame.sprite.Sprite):
         self.vely = 0
         self.add(all_sprites)
         self.can_jump = True
+        self.is_dead = False
+        self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
         if not pygame.sprite.spritecollideany(self, tiles_group) and self.vely < 10:
@@ -219,13 +223,39 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.rect.move(self.velx, self.vely)
 
 
+class Spider(pygame.sprite.Sprite):
+    right = True
 
+    def __init__(self, pos_x, pos_y):
+        super().__init__()
+        self.image = pygame.transform.scale(pygame.image.load('spider.jpg'), (128, 128))
+        self.image.set_colorkey(self.image.get_at((0, 0)))
+        self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
+        self.x = pos_x + 9
+        self.y = pos_y + 22
+        self.velx = 0
+        self.vely = 0
+        self.add(all_sprites)
+        self.can_jump = True
+        self.mask = pygame.mask.from_surface(self.image)
 
+    def update(self):
+        if not pygame.sprite.spritecollideany(self, tiles_group) and self.vely < 10:
+            self.vely += 2
+        if pygame.sprite.spritecollideany(self, tiles_group):
+            self.vely = 0
+            self.can_jump = True
+        if player.x > self.x and self.velx < 4:
+            self.velx += 2
+        elif player.x < self.x and self.velx > -4:
+            self.velx -= 2
+        if player.is_dead is True:
+            self.velx = 0
+        if player.y < self.y and self.can_jump is True:
+            self.can_jump = False
+            self.vely -= 16
+        self.rect = self.rect.move(self.velx, self.vely)
 
-#mob_image = pygame.image.load('spider.png')
-#killed_mob = pygame.image.load('killed.png')
-
-#boss_image = pygame.image.load('boss.png')
 
 
 class Tile(pygame.sprite.Sprite):
@@ -236,11 +266,7 @@ class Tile(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(pygame.image.load('wall.png'), (24, 24))
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
-        self.x = tile_width * pos_x
-        self.y = tile_height * pos_y
-
-    def draw(self, scr):
-        scr.blit(self.image, (self.x, self.y))
+        self.mask = pygame.mask.from_surface(self.image)
 
 
 class Broken_Tile(pygame.sprite.Sprite):
@@ -251,16 +277,12 @@ class Broken_Tile(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(pygame.image.load('broken_wall.png'), (24, 24))
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
-        self.x = tile_width * pos_x
-        self.y = tile_height * pos_y
+
 
     def update(self):
-        if self.rect.colliderect(player.rect):
+        if pygame.sprite.collide_mask(self, player):
             self.image = pygame.transform.scale(pygame.image.load('empty.png'), (24, 24))
             self.image.set_colorkey(self.image.get_at((0, 0)))
-
-    def draw(self, scr):
-        scr.blit(self.image, (self.x, self.y))
 
 
 '''class Empty(pygame.sprite.Sprite):
@@ -298,70 +320,28 @@ class Portal(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(all_sprites)
         self.add(all_sprites)
-        self.image = pygame.transform.scale(pygame.image.load('teleport.png'), (64, 108))
+        self.image = pygame.transform.scale(pygame.image.load('teleport.png'), (250, 250))
         alphachannel = self.image.get_at((0, 0))
         self.image.set_colorkey(alphachannel)
         self.rect = self.image.get_rect().move(
-            tile_width * pos_x, tile_height * pos_y)
-        self.x = tile_width * pos_x
-        self.y = tile_height * pos_y
+            tile_width * pos_x - 87, tile_height * pos_y - 155)
+
 
 
 def main():
     draw_intro()
-    '''player = Player()
-    level_list = []
-    level_list.append(Level_01(player))
-    current_level_no = 0
-    current_level = level_list[current_level_no]
-    active_sprite_list = pygame.sprite.Group()
-    player.level = current_level
-    player.rect.x = 340
-    player.rect.y = SCREEN_HEIGHT - player.rect.height
-    active_sprite_list.add(player)
-    done = False
-    clock = pygame.time.Clock()
-    while not done:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                done = True
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    player.go_left()
-                if event.key == pygame.K_RIGHT:
-                    player.go_right()
-                if event.key == pygame.K_UP:
-                    player.jump()
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT and player.change_x < 0:
-                    player.stop()
-                if event.key == pygame.K_RIGHT and player.change_x > 0:
-                    player.stop()
-        active_sprite_list.update()
-        current_level.update()
-        if player.rect.right > SCREEN_WIDTH:
-            player.rect.right = SCREEN_WIDTH
-        if player.rect.left < 0:
-            player.rect.left = 0
-        current_level.draw(screen)
-        active_sprite_list.draw(screen)
-        clock.tick(30)
-        pygame.display.flip()
-    pygame.quit()
-    '''
+
 
 def load_level(filename):
     filename = "data/" + filename
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
-
     max_width = max(map(len, level_map))
-
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
 def generate_level(level):
-    new_player, x, y = None, None, None
+    new_player, x, y, portal = None, None, None, None
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '.':
@@ -373,8 +353,8 @@ def generate_level(level):
             elif level[y][x] == '@':
                 Broken_Tile(x, y)
             elif level[y][x] == '0':
-                Portal(x, y)
-    return new_player, x, y
+                portal = Portal(x, y)
+    return new_player, x, y, portal
 
 
 if __name__ == '__main__':
