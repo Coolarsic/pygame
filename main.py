@@ -35,6 +35,50 @@ pausebutton.set_colorkey(colorkey)
 pausebutton.convert_alpha()
 
 
+def pausescreen():
+    text = pygame.font.Font('pix.ttf', 18)
+    pausescr = pygame.display.set_mode((1000, 600))
+    pauseim = pygame.transform.scale(pygame.image.load('pausescreen.png'), (1000, 600))
+    contimage = pygame.transform.scale(pygame.image.load('continue.png'), (50, 50))
+    mainmenu = pygame.transform.scale(pygame.image.load('mainmenu.png'), (50, 50))
+    volume = pygame.transform.scale(pygame.image.load('volume.png'), (50, 50))
+    contimage.set_colorkey(contimage.get_at((0, 0)))
+    volume.set_colorkey(volume.get_at((0, 0)))
+    mainmen = text.render("Вернуться в главное меню", True, pygame.color.Color(255, 255, 255))
+    effvol = text.render("Громкость эффектов (+, - на клавиатуре)", True, pygame.color.Color(255, 255, 255))
+    musvol = text.render("Громкость музыки (←, → на клавиатуре)", True, pygame.color.Color(255, 255, 255))
+    ret = text.render("Вернуться в игру", True, pygame.color.Color(255, 255, 255))
+    while True:
+        global effect_volume, music_volume
+        for i in pygame.event.get():
+            if pygame.key.get_pressed()[pygame.K_LEFT]:
+                music_volume -= 0.05
+            elif pygame.key.get_pressed()[pygame.K_RIGHT]:
+                music_volume += 0.05
+            elif pygame.key.get_pressed()[pygame.K_PLUS]:
+                effect_volume += 0.05
+            elif pygame.key.get_pressed()[pygame.K_MINUS]:
+                effect_volume -= 0.05
+            elif i.type == pygame.MOUSEBUTTONDOWN and pausescr.blit(contimage, (350, 100)).collidepoint(pygame.mouse.get_pos()):
+                return
+            elif i.type == pygame.MOUSEBUTTONDOWN and pausescr.blit(mainmenu, (550, 100)).collidepoint(pygame.mouse.get_pos()):
+                [a.kill() for a in all_sprites]
+                [a.kill() for a in player_group]
+                [a.kill() for a in tiles_group]
+                [a.kill() for a in brokentiles_group]
+                [a.kill() for a in empty_group]
+                draw_intro()
+        pausescr.blit(mainmen, (450, 120))
+        pausescr.blit(effvol, (450, 120))
+        pausescr.blit(musvol, (450, 120))
+        pausescr.blit(ret, (450, 120))
+        pausescr.blit(pauseim, (0, 0))
+        pausescr.blit(contimage, (350, 100))
+        pausescr.blit(mainmenu, (550, 100))
+        pygame.display.update()
+        clock.tick(30)
+
+
 def level_1():
     global player
     pygame.display.set_mode([1000, 600])
@@ -53,8 +97,7 @@ def level_1():
         all_sprites.update()
         for i in pygame.event.get():
             if i.type == pygame.MOUSEBUTTONDOWN and screen.blit(pygame.transform.scale(pausebutton, [40, 40]), (0, 0)).collidepoint(pygame.mouse.get_pos()):
-                # pausescreen()
-                pass
+                pausescreen()
             elif i.type == pygame.KEYDOWN:
                 player.update()
         camera = Camera()
@@ -170,7 +213,9 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.frames = []
         self.cut_sheet(sheet, columns, rows)
         self.cur_frame = 0
-        self.image = self.frames[self.cur_frame]
+        self.image = pygame.transform.scale(self.frames[self.cur_frame], (48, 48))
+        colork = self.image.set_colorkey(self.image.get_at((0, 0)))
+        self.image.set_colorkey(colork)
         self.rect = self.rect.move(x, y)
 
     def cut_sheet(self, sheet, columns, rows):
@@ -184,37 +229,61 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
     def update(self):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-        self.image = self.frames[self.cur_frame]
+        self.image = pygame.transform.scale(self.frames[self.cur_frame], (48, 48))
+
+    def get_rect(self):
+        return self.rect
 
 
 class Player(pygame.sprite.Sprite):
     right = True
-
-    def __init__(self, pos_x, pos_y):
-        super().__init__()
-        self.image = pygame.transform.scale(pygame.image.load('right.png'), (48, 48))
-        colorkeypl = self.image.get_at((0, 0))
-        self.image.set_colorkey(colorkeypl)
-        self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
-        self.x = pos_x + 9
-        self.y = pos_y + 22
-        self.velx = 0
-        self.vely = 0
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.frames = []
         self.add(all_sprites)
+        self.cut_sheet(pygame.transform.scale(pygame.image.load('animate_player_right.png'), (192, 48)), 4, 1)
+        self.cur_frame = 0
+        self.image = pygame.transform.scale(self.frames[self.cur_frame], (48, 48))
+        self.rect = self.rect.move(x, y)
+        self.vely = 0
+        self.velx = 0
+        self.x = x + 9
+        self.y = y + 22
         self.can_jump = True
         self.is_dead = False
-        self.mask = pygame.mask.from_surface(self.image)
+        self.iter = 0
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
 
     def update(self):
+        self.iter += 1
+        if self.right is True and (pygame.key.get_pressed()[pygame.K_d] or pygame.key.get_pressed()[pygame.K_a]) and self.iter % 5 == 0:
+            self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+            self.image = pygame.transform.scale(self.frames[self.cur_frame], (48, 48))
+        elif self.right is False and (pygame.key.get_pressed()[pygame.K_d] or pygame.key.get_pressed()[pygame.K_a]) and self.iter % 5 == 0:
+            self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+            self.image = pygame.transform.scale(self.frames[self.cur_frame], (48, 48))
+            self.image = pygame.transform.flip(self.image, True, False)
         if not pygame.sprite.spritecollideany(self, tiles_group) and self.vely < 10:
             self.vely += 2
         if pygame.sprite.spritecollideany(self, tiles_group):
             self.vely = 0
             self.can_jump = True
-        if pygame.key.get_pressed()[pygame.K_d] and self.velx < 4:
-            self.velx += 2
-        elif pygame.key.get_pressed()[pygame.K_a] and self.velx > -4:
-            self.velx -= 2
+        if pygame.key.get_pressed()[pygame.K_d]:
+            self.right = True
+            if self.velx < 4:
+                self.velx += 2
+        elif pygame.key.get_pressed()[pygame.K_a]:
+            self.right = False
+            if self.velx > -4:
+                self.velx -= 2
         if not pygame.key.get_pressed()[pygame.K_a] and not pygame.key.get_pressed()[pygame.K_d]:
             self.velx = 0
         if pygame.key.get_pressed()[pygame.K_SPACE] and self.can_jump is True:
@@ -285,23 +354,6 @@ class Broken_Tile(pygame.sprite.Sprite):
             self.image.set_colorkey(self.image.get_at((0, 0)))
 
 
-'''class Empty(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y):
-        super().__init__(empty_group, all_sprites)
-        self.add(all_sprites)
-        self.add(empty_group)
-        self.image = pygame.transform.scale(pygame.image.load('empty.png'), (24, 24))
-        colorkeyemp = pygame.image.load('empty.png').get_at((0, 0))
-        self.image.set_colorkey(colorkeyemp)
-        self.rect = self.image.get_rect().move(
-            tile_width * pos_x, tile_height * pos_y)
-        self.x = tile_width * pos_x
-        self.y = tile_height * pos_y
-
-    def draw(self, scr):
-        scr.blit(self.image, (self.x, self.y))
-
-'''
 class Camera:
     def __init__(self):
         self.dx = 0
