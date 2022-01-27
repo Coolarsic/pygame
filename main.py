@@ -102,8 +102,6 @@ def level_1():
                 player.update()
         camera = Camera()
         camera.update(player)
-        portal.update()
-
         for sprite in all_sprites:
             camera.apply(sprite)
         pygame.display.flip()
@@ -244,14 +242,15 @@ class Player(pygame.sprite.Sprite):
         self.cut_sheet(pygame.transform.scale(pygame.image.load('animate_player_right.png'), (192, 48)), 4, 1)
         self.cur_frame = 0
         self.image = pygame.transform.scale(self.frames[self.cur_frame], (48, 48))
-        self.rect = self.rect.move(x, y)
+        self.rect = self.rect.move(x + 15, y + 5)
         self.vely = 0
         self.velx = 0
-        self.x = x + 9
-        self.y = y + 22
+        self.x = x
+        self.y = y
         self.can_jump = True
         self.is_dead = False
         self.iter = 0
+        self.mask = pygame.mask.from_surface(self.image)
 
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -289,38 +288,66 @@ class Player(pygame.sprite.Sprite):
         if pygame.key.get_pressed()[pygame.K_SPACE] and self.can_jump is True:
             self.can_jump = False
             self.vely -= 16
+        for t in tiles_group:
+            if pygame.sprite.collide_mask(self, t):
+                self.vely = 0
+                self.velx = 0
         self.rect = self.rect.move(self.velx, self.vely)
 
 
 class Spider(pygame.sprite.Sprite):
     right = True
 
-    def __init__(self, pos_x, pos_y):
-        super().__init__()
-        self.image = pygame.transform.scale(pygame.image.load('spider.jpg'), (128, 128))
-        self.image.set_colorkey(self.image.get_at((0, 0)))
-        self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
-        self.x = pos_x + 9
-        self.y = pos_y + 22
-        self.velx = 0
-        self.vely = 0
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.frames = []
         self.add(all_sprites)
+        self.cut_sheet(pygame.transform.scale(pygame.image.load('animate_player_right.png'), (192, 48)), 4, 1)
+        self.cur_frame = 0
+        self.image = pygame.transform.scale(self.frames[self.cur_frame], (48, 48))
+        self.rect = self.rect.move(x, y)
+        self.vely = 0
+        self.velx = 0
+        self.x = x + 9
+        self.y = y + 22
         self.can_jump = True
-        self.mask = pygame.mask.from_surface(self.image)
+        self.is_dead = False
+        self.iter = 0
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
 
     def update(self):
+        self.iter += 1
+        if self.right is True and self.x < player.x and self.iter % 5 == 0:
+            self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+            self.image = pygame.transform.scale(self.frames[self.cur_frame], (48, 48))
+        elif self.right is False and self.x > player.x and self.iter % 5 == 0:
+            self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+            self.image = pygame.transform.scale(self.frames[self.cur_frame], (48, 48))
+            self.image = pygame.transform.flip(self.image, True, False)
         if not pygame.sprite.spritecollideany(self, tiles_group) and self.vely < 10:
             self.vely += 2
         if pygame.sprite.spritecollideany(self, tiles_group):
             self.vely = 0
             self.can_jump = True
-        if player.x > self.x and self.velx < 4:
-            self.velx += 2
-        elif player.x < self.x and self.velx > -4:
-            self.velx -= 2
-        if player.is_dead is True:
+        if pygame.key.get_pressed()[pygame.K_d]:
+            self.right = True
+            if self.velx < 4:
+                self.velx += 2
+        elif pygame.key.get_pressed()[pygame.K_a]:
+            self.right = False
+            if self.velx > -4:
+                self.velx -= 2
+        if not pygame.key.get_pressed()[pygame.K_a] and not pygame.key.get_pressed()[pygame.K_d]:
             self.velx = 0
-        if player.y < self.y and self.can_jump is True:
+        if pygame.key.get_pressed()[pygame.K_SPACE] and self.can_jump is True:
             self.can_jump = False
             self.vely -= 16
         self.rect = self.rect.move(self.velx, self.vely)
@@ -336,6 +363,7 @@ class Tile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
         self.mask = pygame.mask.from_surface(self.image)
+
 
 
 class Broken_Tile(pygame.sprite.Sprite):
