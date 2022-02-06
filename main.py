@@ -35,8 +35,99 @@ pausebutton = pygame.transform.scale(pygame.image.load('pausebutton.png'), (40, 
 colorkey = pausebutton.get_at((0, 0))
 pausebutton.set_colorkey(colorkey)
 
-def settings():
-    pass
+
+def help_window():
+    text = pygame.font.Font('pix.ttf', 25)
+    text1 = pygame.font.Font('pix.ttf', 50)
+    helpscreen = pygame.display.set_mode((1000, 600))
+    pauseim = pygame.transform.scale(pygame.image.load('pausescreen.png'), (1000, 600))
+    a = pygame.transform.scale(pygame.image.load('a.png'), (40, 40))
+    e = pygame.transform.scale(pygame.image.load('e.png'), (40, 40))
+    space = pygame.transform.scale(pygame.image.load('space.png'), (100, 100))
+    d = pygame.transform.scale(pygame.image.load('d.png'), (40, 40))
+    a.set_colorkey(a.get_at((0, 0)))
+    d.set_colorkey(a.get_at((0, 0)))
+    e.set_colorkey(a.get_at((0, 0)))
+    space.set_colorkey(a.get_at((0, 0)))
+    helpscreen.blit(pauseim, (0, 0))
+    texttext = text.render('После последних событий, произошедших на планете "Спектр" прошло 2 года.', True, pygame.color.Color(100, 150, 255))
+    texttext1 = text.render("И вот, на ней снова была замечена подозрительная активность. Как удалось ", True, pygame.color.Color(100, 150, 255))
+    texttext2 = text.render("узнать, причиной всему этому стало огромное неопознанное существо. Ваша  ", True, pygame.color.Color(100, 150, 255))
+    texttext3 = text.render('задача - разобраться, что происходит на планете "Спектр"', True, pygame.color.Color(100, 150, 255))
+    control = text1.render('Управление', True, pygame.color.Color(255, 255, 255))
+    home = pygame.transform.scale(pygame.image.load('mainmenu.png'), (50, 50))
+    returning1 = text1.render('Чтобы вернуться в главное меню', True, pygame.color.Color(255, 255, 255))
+    returning2 = text1.render('нажмите любую клавишу', True, pygame.color.Color(255, 255, 255))
+    atext = text.render('-> Движение влево', True, pygame.color.Color(255, 255, 255))
+    dtext = text.render('-> Движение вправо', True, pygame.color.Color(255, 255, 255))
+    etext = text.render('-> Поднять оружие/выстрел', True, pygame.color.Color(255, 255, 255))
+    spacetext = text.render('-> Прыжок', True, pygame.color.Color(255, 255, 255))
+    while True:
+        pygame.display.update()
+        screen.blit(texttext, (20, 20))
+        screen.blit(texttext1, (20, 50))
+        screen.blit(texttext2, (20, 80))
+        screen.blit(texttext3, (20, 110))
+        screen.blit(control, (370, 150))
+        screen.blit(returning1, (130, 480))
+        screen.blit(returning2, (250, 530))
+        screen.blit(a, (20, 220))
+        screen.blit(d, (20, 280))
+        screen.blit(e, (20, 340))
+        screen.blit(space, (20, 370))
+        screen.blit(atext, (70, 230))
+        screen.blit(dtext, (70, 290))
+        screen.blit(etext, (70, 350))
+        screen.blit(spacetext, (130, 410))
+        for i in pygame.event.get():
+            if i.type == pygame.KEYDOWN or i.type == pygame.MOUSEBUTTONDOWN:
+                return
+
+
+def settings_window():
+    global effect_volume, music_volume
+    text = pygame.font.Font('pix.ttf', 25)
+    text1 = pygame.font.Font('pix.ttf', 50)
+    pause = text1.render("Настройки", True, pygame.color.Color(100, 150, 255))
+    pausescr = pygame.display.set_mode((1000, 600))
+    pauseim = pygame.transform.scale(pygame.image.load('pausescreen.png'), (1000, 600))
+    contimage = pygame.transform.scale(pygame.image.load('continue.png'), (50, 50))
+    mainmenu = pygame.transform.scale(pygame.image.load('mainmenu.png'), (50, 50))
+    volume = pygame.transform.scale(pygame.image.load('volume.png'), (50, 50))
+    contimage.set_colorkey(contimage.get_at((0, 0)))
+    volume.set_colorkey(volume.get_at((0, 0)))
+    mainmen = text.render("Вернуться в главное меню", True, pygame.color.Color(255, 255, 255))
+    while True:
+        effvol = text.render(f"Громкость эффектов (↑, ↓ на клавиатуре): {round(effect_volume * 100)}%", True,
+                             pygame.color.Color(255, 255, 255))
+        musvol = text.render(f"Громкость музыки (←, → на клавиатуре): {round(music_volume * 100)}%", True,
+                             pygame.color.Color(255, 255, 255))
+        for i in pygame.event.get():
+            if pygame.key.get_pressed()[pygame.K_LEFT] and round(music_volume, 3) > 0:
+                music_volume -= 0.05
+            elif pygame.key.get_pressed()[pygame.K_RIGHT] and round(music_volume, 3) < 1:
+                music_volume += 0.05
+            elif pygame.key.get_pressed()[pygame.K_UP] and round(effect_volume, 3) < 1:
+                effect_volume += 0.05
+                snd = pygame.mixer.Sound('buttonhover.mp3')
+                snd.set_volume(effect_volume)
+                snd.play()
+            elif pygame.key.get_pressed()[pygame.K_DOWN] and round(effect_volume, 3) > 0:
+                effect_volume -= 0.05
+                snd = pygame.mixer.Sound('buttonhover.mp3')
+                snd.set_volume(effect_volume)
+                snd.play()
+            elif i.type == pygame.MOUSEBUTTONDOWN and pausescr.blit(mainmenu, (470, 100)).collidepoint(
+                    pygame.mouse.get_pos()):
+                return
+        pausescr.blit(pauseim, (0, 0))
+        pausescr.blit(pause, (390, 20))
+        pausescr.blit(mainmen, (340, 170))
+        pausescr.blit(effvol, (210, 370))
+        pausescr.blit(musvol, (220, 320))
+        pausescr.blit(mainmenu, (470, 100))
+        pygame.display.update()
+        clock.tick(30)
 
 
 def pausescreen():
@@ -184,8 +275,7 @@ def draw_intro():
                         hoversound.play()
                         sounds = False
                     if event.type == pygame.MOUSEBUTTONDOWN:
-                        pass
-                        #settings_window()
+                        settings_window()
                 else:
                     settings = buttonfont.render("Настройки", True, pygame.color.Color(255, 255, 255))
 
@@ -209,7 +299,7 @@ def draw_intro():
                         sounds = False
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         pass
-                        #help_window()
+                        help_window()
                 else:
                     help = buttonfont.render("Помощь", True, pygame.color.Color(255, 255, 255))
                 if screen.blit(cont, (300, 250)).collidepoint(pos):
