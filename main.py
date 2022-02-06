@@ -1,3 +1,4 @@
+import gc
 import random
 import time
 
@@ -29,16 +30,20 @@ music_volume = 0.5
 size = [SCREEN_WIDTH, SCREEN_HEIGHT]
 screen = pygame.display.set_mode(size)
 
-bg = pygame.transform.scale(pygame.image.load('bg.jpg'), [1000, 600])
 
 pausebutton = pygame.transform.scale(pygame.image.load('pausebutton.png'), (40, 40))
 colorkey = pausebutton.get_at((0, 0))
 pausebutton.set_colorkey(colorkey)
-pausebutton.convert_alpha()
+
+def settings():
+    pass
 
 
 def pausescreen():
-    text = pygame.font.Font('pix.ttf', 18)
+    global effect_volume, music_volume
+    text = pygame.font.Font('pix.ttf', 25)
+    text1 = pygame.font.Font('pix.ttf', 50)
+    pause = text1.render("Пауза", True, pygame.color.Color(100, 150, 255))
     pausescr = pygame.display.set_mode((1000, 600))
     pauseim = pygame.transform.scale(pygame.image.load('pausescreen.png'), (1000, 600))
     contimage = pygame.transform.scale(pygame.image.load('continue.png'), (50, 50))
@@ -47,23 +52,30 @@ def pausescreen():
     contimage.set_colorkey(contimage.get_at((0, 0)))
     volume.set_colorkey(volume.get_at((0, 0)))
     mainmen = text.render("Вернуться в главное меню", True, pygame.color.Color(255, 255, 255))
-    effvol = text.render("Громкость эффектов (+, - на клавиатуре)", True, pygame.color.Color(255, 255, 255))
-    musvol = text.render("Громкость музыки (←, → на клавиатуре)", True, pygame.color.Color(255, 255, 255))
     ret = text.render("Вернуться в игру", True, pygame.color.Color(255, 255, 255))
     while True:
-        global effect_volume, music_volume
+        effvol = text.render(f"Громкость эффектов (↑, ↓ на клавиатуре): {round(effect_volume * 100)}%", True,
+                             pygame.color.Color(255, 255, 255))
+        musvol = text.render(f"Громкость музыки (←, → на клавиатуре): {round(music_volume * 100)}%", True,
+                             pygame.color.Color(255, 255, 255))
         for i in pygame.event.get():
-            if pygame.key.get_pressed()[pygame.K_LEFT]:
+            if pygame.key.get_pressed()[pygame.K_LEFT] and round(music_volume, 3) > 0:
                 music_volume -= 0.05
-            elif pygame.key.get_pressed()[pygame.K_RIGHT]:
+            elif pygame.key.get_pressed()[pygame.K_RIGHT] and round(music_volume, 3) < 1:
                 music_volume += 0.05
-            elif pygame.key.get_pressed()[pygame.K_PLUS]:
+            elif pygame.key.get_pressed()[pygame.K_UP] and round(effect_volume, 3) < 1:
                 effect_volume += 0.05
-            elif pygame.key.get_pressed()[pygame.K_MINUS]:
+                snd = pygame.mixer.Sound('buttonhover.mp3')
+                snd.set_volume(effect_volume)
+                snd.play()
+            elif pygame.key.get_pressed()[pygame.K_DOWN] and round(effect_volume, 3) > 0:
                 effect_volume -= 0.05
-            elif i.type == pygame.MOUSEBUTTONDOWN and pausescr.blit(contimage, (350, 100)).collidepoint(pygame.mouse.get_pos()):
+                snd = pygame.mixer.Sound('buttonhover.mp3')
+                snd.set_volume(effect_volume)
+                snd.play()
+            elif i.type == pygame.MOUSEBUTTONDOWN and pausescr.blit(contimage, (250, 100)).collidepoint(pygame.mouse.get_pos()):
                 return
-            elif i.type == pygame.MOUSEBUTTONDOWN and pausescr.blit(mainmenu, (550, 100)).collidepoint(pygame.mouse.get_pos()):
+            elif i.type == pygame.MOUSEBUTTONDOWN and pausescr.blit(mainmenu, (650, 100)).collidepoint(pygame.mouse.get_pos()):
                 [a.kill() for a in all_sprites]
                 [a.kill() for a in player_group]
                 [a.kill() for a in tiles_group]
@@ -71,13 +83,14 @@ def pausescreen():
                 [a.kill() for a in weapon]
                 [a.kill() for a in monsters]
                 draw_intro()
-        pausescr.blit(mainmen, (450, 120))
-        pausescr.blit(effvol, (450, 120))
-        pausescr.blit(musvol, (450, 120))
-        pausescr.blit(ret, (450, 120))
         pausescr.blit(pauseim, (0, 0))
-        pausescr.blit(contimage, (350, 100))
-        pausescr.blit(mainmenu, (550, 100))
+        pausescr.blit(pause, (430, 20))
+        pausescr.blit(mainmen, (530, 170))
+        pausescr.blit(effvol, (210, 370))
+        pausescr.blit(musvol, (220, 320))
+        pausescr.blit(ret, (170, 170))
+        pausescr.blit(contimage, (250, 100))
+        pausescr.blit(mainmenu, (650, 100))
         pygame.display.update()
         clock.tick(30)
 
@@ -90,11 +103,12 @@ def level_1():
     screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
     pygame.display.flip()
     time.sleep(4)
-    screen.blit(bg, (0, 0))
     player, level_x, level_y, portal = generate_level(load_level('level_1.txt'))
     pygame.display.flip()
     camera = Camera()
+    itr = 0
     while True:
+        bg = pygame.transform.scale(pygame.image.load(f'space-pixel-art-{itr}.png'), [1000, 1000])
         screen.blit(bg, (0, 0))
         screen.blit(pausebutton, (0, 0))
         all_sprites.draw(screen)
@@ -111,6 +125,9 @@ def level_1():
             camera.apply(sprite)
         pygame.display.flip()
         clock.tick(30)
+        itr += 1
+        if itr == 35:
+            itr = 0
         if shotgun.equip is True and can_spawn is True:
             spider1 = Enemy(30, 3)
             spider2 = Enemy(31, 3)
@@ -235,17 +252,20 @@ class Bullet(pygame.sprite.Sprite):
         if pygame.sprite.spritecollideany(self, tiles_group):
             self.image = pygame.image.load('empty.png')
             self.image.set_colorkey(self.image.get_at((0, 0)))
-            self.__del__()
+            self.kill()
+            gc.collect()
         elif pygame.sprite.spritecollideany(self, monsters):
             a = pygame.sprite.spritecollideany(self, monsters)
-            a.is_dead = True
-            self.image = pygame.image.load('empty.png')
-            self.image.set_colorkey(self.image.get_at((0, 0)))
-            self.__del__()
+            if a.is_dead is False:
+                a.is_dead = True
+                a = range(-5, 6)
+                for _ in range(20):
+                    part = OnKillParticle((self.rect.x, self.rect.y), random.choice(a), random.choice(a))
+                self.image = pygame.image.load('empty.png')
+                self.image.set_colorkey(self.image.get_at((0, 0)))
+                self.kill()
+                gc.collect()
         self.rect.move_ip(self.velx, self.vely)
-
-    def __del__(self):
-        pass
 
 
 class Player(pygame.sprite.Sprite):
@@ -356,15 +376,16 @@ class Weapon(pygame.sprite.Sprite):
             self.image = pygame.transform.scale(pygame.image.load('shotgun.png'), (tile_width * 2, tile_height * 2))
             self.cooldown = 0.5
             self.img = pygame.transform.scale(pygame.image.load('shotgun.png'), (tile_width * 2, tile_height * 2))
+            self.rect = self.image.get_rect().move(tile_width * (pos_x - 1), tile_height * (pos_y - 1) - 15)
         self.shootsound.set_volume(effect_volume)
         self.image.set_colorkey(self.image.get_at((1, 1)))
-        self.rect = pygame.Rect(0, 0, tile_width, tile_height)
-        self.rect = self.image.get_rect().move(tile_width * (pos_x - 1), tile_height * (pos_y - 1))
+
         self.mask = pygame.mask.from_surface(self.image)
 
 
     def update(self):
         global player
+        self.shootsound.set_volume(effect_volume)
         if pygame.key.get_pressed()[pygame.K_e] and self.equip and self.can_shoot:
             self.shoot(player.right)
 
@@ -426,10 +447,10 @@ class Enemy(pygame.sprite.Sprite):
 
     def update(self):
         self.iter += 1
-        if self.right is True and self.rect[0] < player.rect[0] and self.iter % 5 == 0:
+        if self.right is True and self.rect[0] < player.rect[0] and self.iter % 5 == 0 and self.is_dead is False:
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
             self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 3, tile_height * 3))
-        elif self.right is False and self.rect[0] > player.rect[0] and self.iter % 5 == 0:
+        elif self.right is False and self.rect[0] > player.rect[0] and self.iter % 5 == 0 and self.is_dead is False:
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
             self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 3, tile_height * 3))
             self.image = pygame.transform.flip(self.image, True, False)
@@ -447,7 +468,12 @@ class Enemy(pygame.sprite.Sprite):
             self.right = False
             if self.velx > -6:
                 self.velx -= 3
-
+        if pygame.sprite.collide_mask(self, player) and self.is_dead is False:
+            player.is_dead = True
+        if self.is_dead is True:
+            self.velx = 0
+            if self.image.get_alpha() > 0:
+                self.image.set_alpha(self.image.get_alpha() - 1)
         self.rect = self.rect.move(self.velx, self.vely)
 
 
@@ -515,7 +541,7 @@ class Tile(pygame.sprite.Sprite):
         super().__init__(tiles_group, all_sprites)
         self.add(all_sprites)
         self.add(tiles_group)
-        self.image = pygame.transform.scale(pygame.image.load('wall.png'), (tile_width, tile_height))
+        self.image = pygame.transform.scale(pygame.image.load('broken_wall.png'), (tile_width, tile_height))
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
         self.mask = pygame.mask.from_surface(self.image)
@@ -531,10 +557,15 @@ class Broken_Tile(pygame.sprite.Sprite):
             tile_width * pos_x, tile_height * pos_y)
 
 
+
+
     def update(self):
         if pygame.sprite.collide_mask(self, player):
             self.image = pygame.transform.scale(pygame.image.load('empty.png'), (tile_width, tile_height))
             self.image.set_colorkey(self.image.get_at((0, 0)))
+            a = range(-5, 6)
+            for _ in range(20):
+                part = Particle((self.rect.x, self.rect.y), random.choice(a), random.choice(a))
 
 
 class Camera:
@@ -560,6 +591,52 @@ class Portal(pygame.sprite.Sprite):
         self.image.set_colorkey(alphachannel)
         self.rect = self.image.get_rect().move(
             tile_width * (pos_x - 5), tile_height * (pos_y - 6))
+
+
+class Particle(pygame.sprite.Sprite):
+    images = [pygame.transform.scale(pygame.image.load("broken_wall.png"), (3, 3))]
+    for scale in (3, 5, 7):
+        images.append(pygame.transform.scale(images[0], (scale, scale)))
+
+    def __init__(self, pos, dx, dy):
+        super().__init__(all_sprites)
+        self.image = random.choice(self.images)
+        self.rect = self.image.get_rect()
+
+        self.velocity = [dx, dy]
+        self.rect.x, self.rect.y = pos
+
+        self.gravity = 5
+
+    def update(self):
+        self.velocity[1] += self.gravity
+        self.rect.x += self.velocity[0]
+        self.rect.y += self.velocity[1]
+        if not self.rect.colliderect(screen.get_rect()):
+            self.kill()
+
+
+class OnKillParticle(pygame.sprite.Sprite):
+    images = [pygame.transform.scale(pygame.image.load('onkillparticle.png'), (3, 3))]
+    for scale in (3, 5, 7):
+        images.append(pygame.transform.scale(images[0], (scale, scale)))
+
+    def __init__(self, pos, dx, dy):
+        super().__init__(all_sprites)
+        self.image = random.choice(self.images)
+        self.rect = self.image.get_rect()
+
+        self.velocity = [dx, dy]
+        self.rect.x, self.rect.y = pos
+
+        self.gravity = 5
+
+    def update(self):
+        self.velocity[1] += self.gravity
+        self.rect.x += self.velocity[0]
+        self.rect.y += self.velocity[1]
+        if not self.rect.colliderect(screen.get_rect()):
+            self.kill()
 
 
 def main():
