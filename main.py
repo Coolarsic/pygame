@@ -231,7 +231,7 @@ def level_1():
 
 def level_2():
     global player, can_spawn
-    rifle = Weapon(56, 5, 'rifle')
+    rifle = Weapon(56, 10, 'rifle')
     pygame.display.set_mode([1000, 600])
     zast = pygame.image.load('zastavka2.jpg')
     screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
@@ -474,7 +474,7 @@ class Player(pygame.sprite.Sprite):
                 self.vely = 0
                 self.can_jump = True
         for t in brokentiles_group:
-            if self.rect.move(0, self.vely).colliderect(t) and t.is_broken is False:
+            if self.rect.move(self.velx, self.vely).colliderect(t) and t.is_broken is False:
                 t.breaktile()
         self.rect = self.rect.move(self.velx, self.vely)
         for w in weapon:
@@ -521,7 +521,6 @@ class Player(pygame.sprite.Sprite):
                         w.rect[0] -= tile_width * 2
                 else:
                     w.image = pygame.transform.flip(w.img, True, False)
-
                     w.image.set_colorkey(w.image.get_at((0, 0)))
 
 
@@ -574,6 +573,8 @@ class Weapon(pygame.sprite.Sprite):
             self.shoot(player.right)
         if not self.equip:
             self.rect = self.rect.move(0, self.vely)
+        if pygame.sprite.spritecollideany(self, brokentiles_group) and pygame.sprite.spritecollideany(self, brokentiles_group).is_broken is False:
+            pygame.sprite.spritecollideany(self, brokentiles_group).breaktile()
 
     def shoot(self, right=True):
         self.shootsound.play()
