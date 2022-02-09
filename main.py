@@ -14,6 +14,7 @@ player = None
 
 tile_width = tile_height = 36
 
+
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
@@ -21,6 +22,7 @@ brokentiles_group = pygame.sprite.Group()
 weapon = pygame.sprite.Group()
 monsters = pygame.sprite.Group()
 boss_group = pygame.sprite.Group()
+portal_group = pygame.sprite.Group()
 
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
@@ -31,6 +33,11 @@ music_volume = 0.5
 size = [SCREEN_WIDTH, SCREEN_HEIGHT]
 screen = pygame.display.set_mode(size)
 
+
+pygame.init()
+fone_music = pygame.mixer.Sound('fone_music.mp3')
+fone_music.set_volume(music_volume)
+fone_music.play()
 
 pausebutton = pygame.transform.scale(pygame.image.load('pausebutton.png'), (40, 40))
 colorkey = pausebutton.get_at((0, 0))
@@ -106,8 +113,10 @@ def settings_window():
         for i in pygame.event.get():
             if pygame.key.get_pressed()[pygame.K_LEFT] and round(music_volume, 3) > 0:
                 music_volume -= 0.05
+                fone_music.set_volume(music_volume)
             elif pygame.key.get_pressed()[pygame.K_RIGHT] and round(music_volume, 3) < 1:
                 music_volume += 0.05
+                fone_music.set_volume(music_volume)
             elif pygame.key.get_pressed()[pygame.K_UP] and round(effect_volume, 3) < 1:
                 effect_volume += 0.05
                 snd = pygame.mixer.Sound('buttonhover.mp3')
@@ -174,6 +183,8 @@ def pausescreen():
                 [a.kill() for a in brokentiles_group]
                 [a.kill() for a in weapon]
                 [a.kill() for a in monsters]
+                [a.kill() for a in portal_group]
+                [a.kill() for a in boss_group]
                 draw_intro()
         pausescr.blit(pauseim, (0, 0))
         pausescr.blit(pause, (430, 20))
@@ -228,8 +239,12 @@ def level_1():
         if pygame.sprite.collide_mask(player, portal):
             level_2()
 
-
 def level_2():
+    [a.kill() for a in tiles_group]
+    [a.kill() for a in brokentiles_group]
+    [a.kill() for a in monsters]
+    [a.kill() for a in boss_group]
+    [a.kill() for a in portal_group]
     global player, can_spawn
     rifle = Weapon(56, 10, 'rifle')
     pygame.display.set_mode([1000, 600])
@@ -265,9 +280,9 @@ def level_2():
         if itr == 35:
             itr = 0
         if rifle.equip is True and can_spawn is True:
-            spider1 = Enemy(30, 5)
-            spider2 = Enemy(32, 5)
-            spider3 = Enemy(36, 5)
+            spider1 = Enemy(80, 10)
+            spider2 = Enemy(75, 9)
+            spider3 = Enemy(76, 10)
             can_spawn = False
         if pygame.sprite.collide_mask(player, portal):
             pass
@@ -288,6 +303,7 @@ def draw_intro():
 
     prevfont = pygame.font.Font('Tr2n.ttf', 60)
     buttonfont = pygame.font.Font('rus.ttf', 40)
+
 
     newgame = buttonfont.render("Новая игра", True, pygame.color.Color(255, 255, 255))
     cont = buttonfont.render("Продолжить", True, pygame.color.Color(255, 255, 255))
@@ -334,6 +350,7 @@ def draw_intro():
                         sounds = False
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         pygame.display.flip()
+                        fone_music.stop()
                         level_1()
                 else:
                     newgame = buttonfont.render("Новая игра", True, pygame.color.Color(255, 255, 255))
@@ -739,6 +756,7 @@ class Tile(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
+
 class Broken_Tile(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(brokentiles_group, all_sprites)
@@ -750,7 +768,7 @@ class Broken_Tile(pygame.sprite.Sprite):
         self.is_broken = False
 
     def update(self):
-        if (pygame.sprite.collide_mask(self, player) or pygame.sprite.spritecollideany(self, weapon)) and self.is_broken is False:
+        if (pygame.sprite.collide_mask(self, player) or pygame.sprite.spritecollideany(self, weapon) or pygame.sprite.spritecollideany(self, monsters)) and self.is_broken is False:
             self.breaktile()
 
     def breaktile(self):
@@ -780,6 +798,7 @@ class Portal(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(all_sprites)
         self.add(all_sprites)
+        self.add(portal_group)
         self.image = pygame.transform.scale(pygame.image.load('teleport.png'), (tile_width * 10, tile_height * 10))
         alphachannel = self.image.get_at((0, 0))
         self.image.set_colorkey(alphachannel)
