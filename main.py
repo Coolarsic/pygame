@@ -2,10 +2,9 @@ import gc
 import random
 import time
 from threading import Thread
-from time import sleep
+import copy
 import pygame
 import sys
-import asyncio
 FPS = 30
 clock = pygame.time.Clock()
 
@@ -232,7 +231,7 @@ def level_1():
 
 def level_2():
     global player, can_spawn
-    rifle = Weapon(28, 5, 'rifle')
+    rifle = Weapon(56, 5, 'rifle')
     pygame.display.set_mode([1000, 600])
     zast = pygame.image.load('zastavka2.jpg')
     screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
@@ -474,10 +473,26 @@ class Player(pygame.sprite.Sprite):
             elif self.rect.move(0, self.vely).colliderect(t):
                 self.vely = 0
                 self.can_jump = True
+        for t in brokentiles_group:
+            if self.rect.move(0, self.vely).colliderect(t) and t.is_broken is False:
+                t.breaktile()
         self.rect = self.rect.move(self.velx, self.vely)
         for w in weapon:
-            if pygame.key.get_pressed()[pygame.K_e] and pygame.sprite.collide_mask(self, w) and w.equip is False:
+            if pygame.key.get_pressed()[pygame.K_e] and pygame.sprite.collide_mask(self, w) and w.equip is False and w.can_be_taken:
+                print()
+                if len(self.inventory) != 0:
+                    print('tca')
+                    gun = Weapon(0, 0, self.inventory[0].typ)
+                    gun.rect[0] = self.inventory[0].rect[0]
+                    gun.rect[1] = self.inventory[0].rect[1]
+                    gun.can_be_taken = False
+                    gun.make_cooldown()
+                    self.inventory[0].kill()
+                    self.inventory.clear()
                 w.equip = True
+                w.can_be_taken = False
+                w.make_cooldown()
+                self.inventory.append(w)
                 if w.typ == 'shotgun':
                     w.rect.update(self.rect[0] + 27, self.rect[1] + 15, tile_width, tile_height)
                 elif w.typ == 'pistol':
@@ -517,9 +532,10 @@ class Weapon(pygame.sprite.Sprite):
         super().__init__(all_sprites, weapon)
         self.add(all_sprites)
         self.add(weapon)
-        self.can_shoot = True
+        self.can_shoot = False
         self.equip = False
         self.vely = 0
+        self.can_be_taken = True
         if typ == 'pistol':
             self.typ = 'pistol'
             self.image = pygame.transform.scale(pygame.image.load('pistol.png'), (tile_width, tile_height))
@@ -582,6 +598,7 @@ class Weapon(pygame.sprite.Sprite):
     def func_cool(self):
         time.sleep(self.cooldown)
         self.can_shoot = True
+        self.can_be_taken = True
 
     def make_cooldown(self):
         th = Thread(target=self.func_cool)
@@ -731,15 +748,17 @@ class Broken_Tile(pygame.sprite.Sprite):
             tile_width * pos_x, tile_height * pos_y)
         self.is_broken = False
 
-
     def update(self):
-        if pygame.sprite.collide_mask(self, player) or pygame.sprite.spritecollideany(self, weapon) and self.is_broken is False:
-            self.is_broken = True
-            self.image = pygame.transform.scale(pygame.image.load('empty.png'), (tile_width, tile_height))
-            self.image.set_colorkey(self.image.get_at((0, 0)))
-            a = range(-5, 6)
-            for _ in range(20):
-                part = Particle((self.rect.x, self.rect.y), random.choice(a), random.choice(a))
+        if (pygame.sprite.collide_mask(self, player) or pygame.sprite.spritecollideany(self, weapon)) and self.is_broken is False:
+            self.breaktile()
+
+    def breaktile(self):
+        self.is_broken = True
+        self.image = pygame.transform.scale(pygame.image.load('empty.png'), (tile_width, tile_height))
+        self.image.set_colorkey(self.image.get_at((0, 0)))
+        a = range(-10, 10)
+        for _ in range(20):
+            part = Particle((self.rect.x, self.rect.y), random.choice(a), random.choice(a))
 
 
 class Camera:
