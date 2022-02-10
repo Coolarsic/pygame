@@ -297,15 +297,23 @@ def level_3():
     player1.kill()
     pygame.display.flip()
     camera = Camera()
-    boss = Boss(75, 17)
+    boss = Boss(65, 14)
     plasmagun = Weapon(30, 10, 'plasmagun')
+    bg = pygame.transform.scale(pygame.image.load('location3.png'), [1000, 600])
+    needportal = True
+    font = pygame.font.Font('pix.ttf', 30)
+
+
     while True:
-        bg = pygame.transform.scale(pygame.image.load('location3.png'), [1000, 600])
         screen.blit(bg, (0, 0))
-        screen.blit(pausebutton, (0, 0))
         all_sprites.draw(screen)
         all_sprites.update()
-
+        if boss.is_dead is False:
+            text = font.render(f'Hp: {boss.hp} / 1000', False, pygame.color.Color(255, 255, 255))
+            screen.blit(pausebutton, (0, 0))
+            pygame.draw.rect(screen, (50, 50, 50), (130, 525, 720, 60))
+            pygame.draw.rect(screen, (255, 50, 50), (140, 530, boss.hp * 700 // 1000, 50))
+            screen.blit(text, (450, 535))
         for i in pygame.event.get():
             if i.type == pygame.MOUSEBUTTONDOWN and screen.blit(pygame.transform.scale(pausebutton, [40, 40]),
                                                                 (0, 0)).collidepoint(pygame.mouse.get_pos()):
@@ -318,8 +326,9 @@ def level_3():
             camera.apply(sprite)
         pygame.display.flip()
         clock.tick(30)
-        if boss.is_dead:
-            portal1 = Portal(52, 19)
+        if boss.is_dead and needportal:
+            portal1 = Portal(53, 17)
+            needportal = False
 
 
 def ShadowText(screen, text, size, x, y, color=(150,150,255), drop_color=(100,100,200), font=None, offset=5):
@@ -461,13 +470,14 @@ class Bullet(pygame.sprite.Sprite):
             elif self.typ == 'shotgun':
                 a.hp -= 10
             elif self.typ == 'plasmagun':
-                a.hp -= 200
-            rng = range(-40, 40)
-            for _ in range(20):
-                part = OnKillParticle((self.rect.x, self.rect.y), random.choice(rng), random.choice(rng))
-            self.image = pygame.image.load('empty.png')
-            self.image.set_colorkey(self.image.get_at((0, 0)))
-            self.kill()
+                a.hp -= 500
+            if a.is_dead is False:
+                rng = range(-40, 40)
+                for _ in range(20):
+                    part = OnKillParticle((self.rect.x, self.rect.y), random.choice(rng), random.choice(rng))
+                self.image = pygame.image.load('empty.png')
+                self.image.set_colorkey(self.image.get_at((0, 0)))
+                self.kill()
             gc.collect()
         self.rect.move_ip(self.velx, self.vely)
 
@@ -506,10 +516,10 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         self.iter += 1
-        if self.right is True and (pygame.key.get_pressed()[pygame.K_d] or pygame.key.get_pressed()[pygame.K_a]) and self.iter % 5 == 0:
+        if self.right is True and (pygame.key.get_pressed()[pygame.K_d] or pygame.key.get_pressed()[pygame.K_a]) and self.iter % 4 == 0:
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
             self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 2, tile_height * 2))
-        elif self.right is False and (pygame.key.get_pressed()[pygame.K_d] or pygame.key.get_pressed()[pygame.K_a]) and self.iter % 5 == 0:
+        elif self.right is False and (pygame.key.get_pressed()[pygame.K_d] or pygame.key.get_pressed()[pygame.K_a]) and self.iter % 4 == 0:
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
             self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 2, tile_height * 2))
             self.image = pygame.transform.flip(self.image, True, False)
@@ -545,7 +555,6 @@ class Player(pygame.sprite.Sprite):
             if pygame.key.get_pressed()[pygame.K_e] and pygame.sprite.collide_mask(self, w) and w.equip is False and w.can_be_taken:
                 print()
                 if len(self.inventory) != 0:
-                    print('tca')
                     gun = Weapon(0, 0, self.inventory[0].typ)
                     gun.rect[0] = self.inventory[0].rect[0]
                     gun.rect[1] = self.inventory[0].rect[1]
@@ -604,7 +613,6 @@ class Weapon(pygame.sprite.Sprite):
             self.image = pygame.transform.scale(pygame.image.load('pistol.png'), (tile_width, tile_height))
             self.shootsound = pygame.mixer.Sound('pistol_sound.mp3')
             self.cooldown = 1
-            self.damage = 5
             self.img = pygame.transform.scale(pygame.image.load('pistol.png'), (tile_width, tile_height))
             self.rect = self.image.get_rect().move(tile_width * (pos_x - 1), tile_height * (pos_y - 1) - 15)
         elif typ == 'plasmagun':
@@ -612,7 +620,6 @@ class Weapon(pygame.sprite.Sprite):
             self.image = pygame.transform.scale(pygame.image.load('rifle.png'), (tile_width * 2, tile_height * 2))
             self.shootsound = pygame.mixer.Sound('rifle_sound.mp3')
             self.cooldown = 3.0
-            self.damage = 200
             self.img = pygame.transform.scale(pygame.image.load('rifle.png'), (tile_width * 2, tile_height * 2))
             self.rect = self.image.get_rect().move(tile_width * (pos_x - 1), tile_height * (pos_y - 1) - 15)
         elif typ == 'shotgun':
@@ -620,13 +627,11 @@ class Weapon(pygame.sprite.Sprite):
             self.shootsound = pygame.mixer.Sound('shotgun_sound.mp3')
             self.image = pygame.transform.scale(pygame.image.load('shotgun.png'), (tile_width * 2, tile_height * 2))
             self.cooldown = 0.5
-            self.damage = 10
             self.img = pygame.transform.scale(pygame.image.load('shotgun.png'), (tile_width * 2, tile_height * 2))
             self.rect = self.image.get_rect().move(tile_width * (pos_x - 1), tile_height * (pos_y - 1) - 15)
         self.shootsound.set_volume(effect_volume)
         self.image.set_colorkey(self.image.get_at((1, 1)))
         self.img.set_colorkey(self.img.get_at((0, 0)))
-
         self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
@@ -645,7 +650,6 @@ class Weapon(pygame.sprite.Sprite):
 
     def shoot(self, right=True):
         self.shootsound.play()
-        velx = 0
         self.can_shoot = False
         self.make_cooldown()
         if right is True:
@@ -705,15 +709,15 @@ class Enemy(pygame.sprite.Sprite):
 
     def update(self):
         self.iter += 1
-        if self.right is True and self.rect[0] < player.rect[0] and self.iter % 5 == 0 and self.is_dead is False:
+        if self.right is True and self.rect[0] < player.rect[0] and self.iter % 4 == 0 and self.is_dead is False:
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
             self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 3, tile_height * 3))
-        elif self.right is False and self.rect[0] > player.rect[0] and self.iter % 5 == 0 and self.is_dead is False:
+        elif self.right is False and self.rect[0] > player.rect[0] and self.iter % 4 == 0 and self.is_dead is False:
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
             self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 3, tile_height * 3))
             self.image = pygame.transform.flip(self.image, True, False)
         if not pygame.sprite.spritecollideany(self, tiles_group) and self.vely < 10:
-            self.vely += 5
+            self.vely += 2
         for i in tiles_group:
             if pygame.sprite.collide_mask(self, i):
                 self.vely = 0
@@ -732,6 +736,9 @@ class Enemy(pygame.sprite.Sprite):
             self.velx = 0
             if self.image.get_alpha() > 0:
                 self.image.set_alpha(self.image.get_alpha() - 1)
+        if player.rect[1] < self.rect[1] and not self.is_dead and self.can_jump:
+            self.vely -= 15
+            self.can_jump = False
         self.rect = self.rect.move(self.velx, self.vely)
 
 
@@ -743,16 +750,17 @@ class Boss(pygame.sprite.Sprite):
         self.frames = []
         self.add(all_sprites)
         self.add(boss_group)
-        self.cut_sheet(pygame.transform.scale(pygame.image.load('animated_spider.png'), (tile_width * 10, tile_height * 10)), 4, 1)
+        self.cut_sheet(pygame.transform.scale(pygame.image.load('animated_boss.png'), (tile_width * 7, tile_height * 7)), 4, 1)
         self.cur_frame = 0
-        self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 10, tile_height * 10))
+        self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 7, tile_height * 7))
         self.rect = self.rect.move(x * tile_width, y * tile_height)
         self.vely = 0
         self.velx = 6
         self.can_jump = True
         self.is_dead = False
         self.iter = 0
-        self.hp = 100
+        self.hp = 1000
+        self.mask = pygame.mask.from_surface(self.image)
 
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -765,31 +773,39 @@ class Boss(pygame.sprite.Sprite):
 
     def update(self):
         self.iter += 1
-        if self.right is True and self.rect.x < player.rect.x and self.iter % 5 == 0:
+        if self.right is True and self.rect[0] < player.rect[0] and self.iter % 4 == 0 and self.is_dead is False:
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-            self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 3, tile_height * 3))
-        elif self.right is False and self.rect.x > player.rect.x and self.iter % 5 == 0:
+            self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 7, tile_height * 7))
+        elif self.right is False and self.rect[0] > player.rect[0] and self.iter % 4 == 0 and self.is_dead is False:
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-            self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 3, tile_height * 3))
+            self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 7, tile_height * 7))
             self.image = pygame.transform.flip(self.image, True, False)
         if not pygame.sprite.spritecollideany(self, tiles_group) and self.vely < 10:
-            self.vely += 5
-        if pygame.sprite.spritecollideany(self, tiles_group):
-            self.vely = 0
-            self.can_jump = True
-        if player.rect.x > self.rect.x:
+            self.vely += 2
+        for t in tiles_group:
+            if pygame.sprite.collide_mask(self, t):
+                self.vely = 0
+                self.can_jump = True
+                break
+        if player.rect[0] > self.rect[0]:
             self.right = True
-            if self.velx < 10:
-                self.velx += 5
-        elif player.rect.x < self.rect.x:
+            if self.velx < 6:
+                self.velx += 3
+        elif player.rect[0] < self.rect[0]:
             self.right = False
-            if self.velx > -10:
-                self.velx -= 5
-        if not pygame.key.get_pressed()[pygame.K_a] and not pygame.key.get_pressed()[pygame.K_d]:
+            if self.velx > -6:
+                self.velx -= 3
+        if pygame.sprite.collide_mask(self, player) and self.is_dead is False:
+            player.is_dead = True
+        if self.is_dead is True:
             self.velx = 0
-        if pygame.key.get_pressed()[pygame.K_SPACE] and self.can_jump is True:
+            if self.image.get_alpha() > 0:
+                self.image.set_alpha(self.image.get_alpha() - 1)
+        if player.rect[1] < self.rect[1] and not self.is_dead and self.can_jump:
+            self.vely -= 10
             self.can_jump = False
-            self.vely -= 16
+        if self.hp <= 0:
+            self.is_dead = True
         self.rect = self.rect.move(self.velx, self.vely)
 
 
