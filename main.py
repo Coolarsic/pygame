@@ -35,24 +35,24 @@ screen = pygame.display.set_mode(size)
 
 
 pygame.init()
-fone_music = pygame.mixer.Sound('fone_music.mp3')
+fone_music = pygame.mixer.Sound('data/sounds/fone_music.mp3')
 fone_music.set_volume(music_volume)
 fone_music.play()
 
-pausebutton = pygame.transform.scale(pygame.image.load('pausebutton.png'), (40, 40))
+pausebutton = pygame.transform.scale(pygame.image.load('data/images/pausebutton.png'), (40, 40))
 colorkey = pausebutton.get_at((0, 0))
 pausebutton.set_colorkey(colorkey)
 
 
 def help_window():
-    text = pygame.font.Font('pix.ttf', 25)
-    text1 = pygame.font.Font('pix.ttf', 50)
+    text = pygame.font.Font('data/fonts/pix.ttf', 25)
+    text1 = pygame.font.Font('data/fonts/pix.ttf', 50)
     helpscreen = pygame.display.set_mode((1000, 600))
-    pauseim = pygame.transform.scale(pygame.image.load('pausescreen.png'), (1000, 600))
-    a = pygame.transform.scale(pygame.image.load('a.png'), (40, 40))
-    e = pygame.transform.scale(pygame.image.load('e.png'), (40, 40))
-    space = pygame.transform.scale(pygame.image.load('space.png'), (100, 100))
-    d = pygame.transform.scale(pygame.image.load('d.png'), (40, 40))
+    pauseim = pygame.transform.scale(pygame.image.load('data/images/pausescreen.png'), (1000, 600))
+    a = pygame.transform.scale(pygame.image.load('data/images/a.png'), (40, 40))
+    e = pygame.transform.scale(pygame.image.load('data/images/e.png'), (40, 40))
+    space = pygame.transform.scale(pygame.image.load('data/images/space.png'), (100, 100))
+    d = pygame.transform.scale(pygame.image.load('data/images/d.png'), (40, 40))
     a.set_colorkey(a.get_at((0, 0)))
     d.set_colorkey(a.get_at((0, 0)))
     e.set_colorkey(a.get_at((0, 0)))
@@ -63,7 +63,7 @@ def help_window():
     texttext2 = text.render("узнать, причиной всему этому стало огромное неопознанное существо. Ваша  ", True, pygame.color.Color(100, 150, 255))
     texttext3 = text.render('задача - разобраться, что происходит на планете "Спектр"', True, pygame.color.Color(100, 150, 255))
     control = text1.render('Управление', True, pygame.color.Color(255, 255, 255))
-    home = pygame.transform.scale(pygame.image.load('mainmenu.png'), (50, 50))
+    home = pygame.transform.scale(pygame.image.load('data/images/mainmenu.png'), (50, 50))
     returning1 = text1.render('Чтобы вернуться в главное меню', True, pygame.color.Color(255, 255, 255))
     returning2 = text1.render('нажмите любую клавишу', True, pygame.color.Color(255, 255, 255))
     atext = text.render('-> Движение влево', True, pygame.color.Color(255, 255, 255))
@@ -94,14 +94,14 @@ def help_window():
 
 def settings_window():
     global effect_volume, music_volume
-    text = pygame.font.Font('pix.ttf', 25)
-    text1 = pygame.font.Font('pix.ttf', 50)
+    text = pygame.font.Font('data/fonts/pix.ttf', 25)
+    text1 = pygame.font.Font('data/fonts/pix.ttf', 50)
     pause = text1.render("Настройки", True, pygame.color.Color(100, 150, 255))
     pausescr = pygame.display.set_mode((1000, 600))
-    pauseim = pygame.transform.scale(pygame.image.load('pausescreen.png'), (1000, 600))
-    contimage = pygame.transform.scale(pygame.image.load('continue.png'), (50, 50))
-    mainmenu = pygame.transform.scale(pygame.image.load('mainmenu.png'), (50, 50))
-    volume = pygame.transform.scale(pygame.image.load('volume.png'), (50, 50))
+    pauseim = pygame.transform.scale(pygame.image.load('data/images/pausescreen.png'), (1000, 600))
+    contimage = pygame.transform.scale(pygame.image.load('data/images/continue.png'), (50, 50))
+    mainmenu = pygame.transform.scale(pygame.image.load('data/images/mainmenu.png'), (50, 50))
+    volume = pygame.transform.scale(pygame.image.load('data/images/volume.png'), (50, 50))
     contimage.set_colorkey(contimage.get_at((0, 0)))
     volume.set_colorkey(volume.get_at((0, 0)))
     mainmen = text.render("Вернуться в главное меню", True, pygame.color.Color(255, 255, 255))
@@ -119,12 +119,12 @@ def settings_window():
                 fone_music.set_volume(music_volume)
             elif pygame.key.get_pressed()[pygame.K_UP] and round(effect_volume, 3) < 1:
                 effect_volume += 0.05
-                snd = pygame.mixer.Sound('buttonhover.mp3')
+                snd = pygame.mixer.Sound('data/sounds/buttonhover.mp3')
                 snd.set_volume(effect_volume)
                 snd.play()
             elif pygame.key.get_pressed()[pygame.K_DOWN] and round(effect_volume, 3) > 0:
                 effect_volume -= 0.05
-                snd = pygame.mixer.Sound('buttonhover.mp3')
+                snd = pygame.mixer.Sound('data/sounds/buttonhover.mp3')
                 snd.set_volume(effect_volume)
                 snd.play()
             elif i.type == pygame.MOUSEBUTTONDOWN and pausescr.blit(mainmenu, (470, 100)).collidepoint(
@@ -142,14 +142,14 @@ def settings_window():
 
 def pausescreen():
     global effect_volume, music_volume
-    text = pygame.font.Font('pix.ttf', 25)
-    text1 = pygame.font.Font('pix.ttf', 50)
+    text = pygame.font.Font('data/fonts/pix.ttf', 25)
+    text1 = pygame.font.Font('data/fonts/pix.ttf', 50)
     pause = text1.render("Пауза", True, pygame.color.Color(100, 150, 255))
     pausescr = pygame.display.set_mode((1000, 600))
-    pauseim = pygame.transform.scale(pygame.image.load('pausescreen.png'), (1000, 600))
-    contimage = pygame.transform.scale(pygame.image.load('continue.png'), (50, 50))
-    mainmenu = pygame.transform.scale(pygame.image.load('mainmenu.png'), (50, 50))
-    volume = pygame.transform.scale(pygame.image.load('volume.png'), (50, 50))
+    pauseim = pygame.transform.scale(pygame.image.load('data/images/pausescreen.png'), (1000, 600))
+    contimage = pygame.transform.scale(pygame.image.load('data/images/continue.png'), (50, 50))
+    mainmenu = pygame.transform.scale(pygame.image.load('data/images/mainmenu.png'), (50, 50))
+    volume = pygame.transform.scale(pygame.image.load('data/images/volume.png'), (50, 50))
     contimage.set_colorkey(contimage.get_at((0, 0)))
     volume.set_colorkey(volume.get_at((0, 0)))
     mainmen = text.render("Вернуться в главное меню", True, pygame.color.Color(255, 255, 255))
@@ -166,12 +166,12 @@ def pausescreen():
                 music_volume += 0.05
             elif pygame.key.get_pressed()[pygame.K_UP] and round(effect_volume, 3) < 1:
                 effect_volume += 0.05
-                snd = pygame.mixer.Sound('buttonhover.mp3')
+                snd = pygame.mixer.Sound('data/sounds/buttonhover.mp3')
                 snd.set_volume(effect_volume)
                 snd.play()
             elif pygame.key.get_pressed()[pygame.K_DOWN] and round(effect_volume, 3) > 0:
                 effect_volume -= 0.05
-                snd = pygame.mixer.Sound('buttonhover.mp3')
+                snd = pygame.mixer.Sound('data/sounds/buttonhover.mp3')
                 snd.set_volume(effect_volume)
                 snd.play()
             elif i.type == pygame.MOUSEBUTTONDOWN and pausescr.blit(contimage, (250, 100)).collidepoint(pygame.mouse.get_pos()):
@@ -202,16 +202,16 @@ def level_1():
     global player, can_spawn
     pistol = Weapon(28, 5, 'pistol')
     pygame.display.set_mode([1000, 600])
-    zast = pygame.image.load('zastavka1.jpg')
+    zast = pygame.image.load('data/images/zastavka1.jpg')
     screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
     pygame.display.flip()
     time.sleep(4)
-    player, level_x, level_y, portal = generate_level(load_level('level_1.txt'))
+    player, level_x, level_y, portal = generate_level(load_level('/levels/level_1.txt'))
     pygame.display.flip()
     camera = Camera()
     itr = 0
     while True:
-        bg = pygame.transform.scale(pygame.image.load(f'space-pixel-art-{itr}.png'), [1000, 600])
+        bg = pygame.transform.scale(pygame.image.load(f'data/images/space-pixel-art-{itr}.png'), [1000, 600])
         screen.blit(bg, (0, 0))
         screen.blit(pausebutton, (0, 0))
         all_sprites.draw(screen)
@@ -248,18 +248,18 @@ def level_2():
     global player, can_spawn
     shotgun = Weapon(56, 10, 'shotgun')
     pygame.display.set_mode([1000, 600])
-    zast = pygame.image.load('zastavka2.jpg')
+    zast = pygame.image.load('data/images/zastavka2.jpg')
     screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
     pygame.display.flip()
     time.sleep(4)
-    player1, level_x, level_y, portal = generate_level(load_level('level_2.txt'))
+    player1, level_x, level_y, portal = generate_level(load_level('/levels/level_2.txt'))
     player.rect = player1.rect
     player1.kill()
     pygame.display.flip()
     camera = Camera()
     itr = 0
     while True:
-        bg = pygame.transform.scale(pygame.image.load('location2.png'), [1000, 600])
+        bg = pygame.transform.scale(pygame.image.load('data/images/location2.png'), [1000, 600])
         screen.blit(bg, (0, 0))
         screen.blit(pausebutton, (0, 0))
         all_sprites.draw(screen)
@@ -288,22 +288,20 @@ def level_3():
     [a.kill() for a in portal_group]
     global player, can_spawn
     pygame.display.set_mode([1000, 600])
-    zast = pygame.image.load('zastavka3.jpg')
+    zast = pygame.image.load('data/images/zastavka3.jpg')
     screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
     pygame.display.flip()
     time.sleep(4)
-    player1, level_x, level_y, portal = generate_level(load_level('level_3.txt'))
+    player1, level_x, level_y, portal = generate_level(load_level('/levels/level_3.txt'))
     player.rect = player1.rect
     player1.kill()
     pygame.display.flip()
     camera = Camera()
     boss = Boss(65, 14)
     plasmagun = Weapon(30, 10, 'plasmagun')
-    bg = pygame.transform.scale(pygame.image.load('location3.png'), [1000, 600])
+    bg = pygame.transform.scale(pygame.image.load('data/images/location3.png'), [1000, 600])
     needportal = True
-    font = pygame.font.Font('pix.ttf', 30)
-
-
+    font = pygame.font.Font('data/fonts/pix.ttf', 30)
     while True:
         screen.blit(bg, (0, 0))
         all_sprites.draw(screen)
@@ -342,10 +340,10 @@ def draw_intro():
     pygame.init()
 
     pygame.display.set_caption('Space expedition')
-    img = pygame.image.load('main.png')
+    img = pygame.image.load('data/images/main.png')
 
-    prevfont = pygame.font.Font('Tr2n.ttf', 60)
-    buttonfont = pygame.font.Font('rus.ttf', 40)
+    prevfont = pygame.font.Font('data/fonts/Tr2n.ttf', 60)
+    buttonfont = pygame.font.Font('data/fonts/rus.ttf', 40)
 
 
     newgame = buttonfont.render("Новая игра", True, pygame.color.Color(255, 255, 255))
@@ -354,7 +352,7 @@ def draw_intro():
     help = buttonfont.render("Помощь", True, pygame.color.Color(255, 255, 255))
     ex = buttonfont.render("Выйти", True, pygame.color.Color(255, 255, 255))
 
-    hoversound = pygame.mixer.Sound('buttonhover.mp3')
+    hoversound = pygame.mixer.Sound('data/sounds/buttonhover.mp3')
     sounds = True
 
     while True:
@@ -434,11 +432,11 @@ class Bullet(pygame.sprite.Sprite):
         super().__init__(all_sprites)
         self.add(all_sprites)
         if typ == 'pistol':
-            self.image = pygame.transform.scale(pygame.image.load('pistol_bullet.png'), (20, 20))
+            self.image = pygame.transform.scale(pygame.image.load('data/images/pistol_bullet.png'), (20, 20))
         elif typ == 'plasmagun':
-            self.image = pygame.transform.scale(pygame.image.load('rifle_bullet.png'), (50, 50))
+            self.image = pygame.transform.scale(pygame.image.load('data/images/rifle_bullet.png'), (50, 50))
         elif typ == 'shotgun':
-            self.image = pygame.transform.scale(pygame.image.load('pistol_bullet.png'), (20, 20))
+            self.image = pygame.transform.scale(pygame.image.load('data/images/pistol_bullet.png'), (20, 20))
         self.image.set_colorkey(self.image.get_at((0, 0)))
         self.rect = self.image.get_rect().move(x + 20, y + 10)
         self.vely = vely
@@ -448,7 +446,7 @@ class Bullet(pygame.sprite.Sprite):
 
     def update(self):
         if pygame.sprite.spritecollideany(self, tiles_group):
-            self.image = pygame.image.load('empty.png')
+            self.image = pygame.image.load('data/images/empty.png')
             self.image.set_colorkey(self.image.get_at((0, 0)))
             self.kill()
             gc.collect()
@@ -459,7 +457,7 @@ class Bullet(pygame.sprite.Sprite):
                 a = range(-40, 40)
                 for _ in range(20):
                     part = OnKillParticle((self.rect.x, self.rect.y), random.choice(a), random.choice(a))
-                self.image = pygame.image.load('empty.png')
+                self.image = pygame.image.load('data/images/empty.png')
                 self.image.set_colorkey(self.image.get_at((0, 0)))
                 self.kill()
                 gc.collect()
@@ -475,7 +473,7 @@ class Bullet(pygame.sprite.Sprite):
                 rng = range(-40, 40)
                 for _ in range(20):
                     part = OnKillParticle((self.rect.x, self.rect.y), random.choice(rng), random.choice(rng))
-                self.image = pygame.image.load('empty.png')
+                self.image = pygame.image.load('data/images/empty.png')
                 self.image.set_colorkey(self.image.get_at((0, 0)))
                 self.kill()
             gc.collect()
@@ -491,7 +489,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__(all_sprites)
         self.frames = []
         self.add(all_sprites)
-        self.cut_sheet(pygame.transform.scale(pygame.image.load('animate_player_right.png'), (tile_width * 4, tile_height * 2)), 4, 1)
+        self.cut_sheet(pygame.transform.scale(pygame.image.load('data/images/animate_player_right.png'), (tile_width * 4, tile_height * 2)), 4, 1)
         self.cur_frame = 0
         self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 2, tile_height * 2))
         self.rect = self.rect.move(x * tile_width, y * tile_height)
@@ -610,24 +608,24 @@ class Weapon(pygame.sprite.Sprite):
         self.can_be_taken = True
         if typ == 'pistol':
             self.typ = 'pistol'
-            self.image = pygame.transform.scale(pygame.image.load('pistol.png'), (tile_width, tile_height))
-            self.shootsound = pygame.mixer.Sound('pistol_sound.mp3')
+            self.image = pygame.transform.scale(pygame.image.load('data/images/pistol.png'), (tile_width, tile_height))
+            self.shootsound = pygame.mixer.Sound('data/sounds/pistol_sound.mp3')
             self.cooldown = 1
-            self.img = pygame.transform.scale(pygame.image.load('pistol.png'), (tile_width, tile_height))
+            self.img = pygame.transform.scale(pygame.image.load('data/images/pistol.png'), (tile_width, tile_height))
             self.rect = self.image.get_rect().move(tile_width * (pos_x - 1), tile_height * (pos_y - 1) - 15)
         elif typ == 'plasmagun':
             self.typ = 'plasmagun'
-            self.image = pygame.transform.scale(pygame.image.load('rifle.png'), (tile_width * 2, tile_height * 2))
-            self.shootsound = pygame.mixer.Sound('rifle_sound.mp3')
+            self.image = pygame.transform.scale(pygame.image.load('data/images/rifle.png'), (tile_width * 2, tile_height * 2))
+            self.shootsound = pygame.mixer.Sound('data/sounds/rifle_sound.mp3')
             self.cooldown = 3.0
-            self.img = pygame.transform.scale(pygame.image.load('rifle.png'), (tile_width * 2, tile_height * 2))
+            self.img = pygame.transform.scale(pygame.image.load('data/images/rifle.png'), (tile_width * 2, tile_height * 2))
             self.rect = self.image.get_rect().move(tile_width * (pos_x - 1), tile_height * (pos_y - 1) - 15)
         elif typ == 'shotgun':
             self.typ = 'shotgun'
-            self.shootsound = pygame.mixer.Sound('shotgun_sound.mp3')
-            self.image = pygame.transform.scale(pygame.image.load('shotgun.png'), (tile_width * 2, tile_height * 2))
+            self.shootsound = pygame.mixer.Sound('data/sounds/shotgun_sound.mp3')
+            self.image = pygame.transform.scale(pygame.image.load('data/images/shotgun.png'), (tile_width * 2, tile_height * 2))
             self.cooldown = 0.5
-            self.img = pygame.transform.scale(pygame.image.load('shotgun.png'), (tile_width * 2, tile_height * 2))
+            self.img = pygame.transform.scale(pygame.image.load('data/images/shotgun.png'), (tile_width * 2, tile_height * 2))
             self.rect = self.image.get_rect().move(tile_width * (pos_x - 1), tile_height * (pos_y - 1) - 15)
         self.shootsound.set_volume(effect_volume)
         self.image.set_colorkey(self.image.get_at((1, 1)))
@@ -685,7 +683,7 @@ class Enemy(pygame.sprite.Sprite):
         self.frames = []
         self.add(all_sprites)
         self.add(monsters)
-        self.cut_sheet(pygame.transform.scale(pygame.image.load('animated_spider.png'), (240, 60)), 4, 1)
+        self.cut_sheet(pygame.transform.scale(pygame.image.load('data/images/animated_spider.png'), (240, 60)), 4, 1)
         self.cur_frame = 0
         self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 3, tile_height * 3))
         self.rect = self.rect.move(x * tile_width, y * tile_height)
@@ -750,7 +748,7 @@ class Boss(pygame.sprite.Sprite):
         self.frames = []
         self.add(all_sprites)
         self.add(boss_group)
-        self.cut_sheet(pygame.transform.scale(pygame.image.load('animated_boss.png'), (tile_width * 7, tile_height * 7)), 4, 1)
+        self.cut_sheet(pygame.transform.scale(pygame.image.load('data/images/animated_boss.png'), (tile_width * 7, tile_height * 7)), 4, 1)
         self.cur_frame = 0
         self.image = pygame.transform.scale(self.frames[self.cur_frame], (tile_width * 7, tile_height * 7))
         self.rect = self.rect.move(x * tile_width, y * tile_height)
@@ -814,7 +812,7 @@ class Tile(pygame.sprite.Sprite):
         super().__init__(tiles_group, all_sprites)
         self.add(all_sprites)
         self.add(tiles_group)
-        self.image = pygame.transform.scale(pygame.image.load('broken_wall.png'), (tile_width, tile_height))
+        self.image = pygame.transform.scale(pygame.image.load('data/images/broken_wall.png'), (tile_width, tile_height))
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
         self.mask = pygame.mask.from_surface(self.image)
@@ -826,7 +824,7 @@ class Broken_Tile(pygame.sprite.Sprite):
         super().__init__(brokentiles_group, all_sprites)
         self.add(all_sprites)
         self.add(brokentiles_group)
-        self.image = pygame.transform.scale(pygame.image.load('broken_wall.png'), (tile_width, tile_height))
+        self.image = pygame.transform.scale(pygame.image.load('data/images/broken_wall.png'), (tile_width, tile_height))
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
         self.is_broken = False
@@ -837,7 +835,7 @@ class Broken_Tile(pygame.sprite.Sprite):
 
     def breaktile(self):
         self.is_broken = True
-        self.image = pygame.transform.scale(pygame.image.load('empty.png'), (tile_width, tile_height))
+        self.image = pygame.transform.scale(pygame.image.load('data/images/empty.png'), (tile_width, tile_height))
         self.image.set_colorkey(self.image.get_at((0, 0)))
         a = range(-10, 10)
         for _ in range(20):
@@ -863,7 +861,7 @@ class Portal(pygame.sprite.Sprite):
         super().__init__(all_sprites)
         self.add(all_sprites)
         self.add(portal_group)
-        self.image = pygame.transform.scale(pygame.image.load('teleport.png'), (tile_width * 10, tile_height * 10))
+        self.image = pygame.transform.scale(pygame.image.load('data/images/teleport.png'), (tile_width * 10, tile_height * 10))
         alphachannel = self.image.get_at((0, 0))
         self.image.set_colorkey(alphachannel)
         self.rect = self.image.get_rect().move(
@@ -872,7 +870,7 @@ class Portal(pygame.sprite.Sprite):
 
 
 class Particle(pygame.sprite.Sprite):
-    images = [pygame.transform.scale(pygame.image.load("broken_wall.png"), (3, 3))]
+    images = [pygame.transform.scale(pygame.image.load("data/images/broken_wall.png"), (3, 3))]
     for scale in (3, 5, 7):
         images.append(pygame.transform.scale(images[0], (scale, scale)))
 
@@ -895,7 +893,7 @@ class Particle(pygame.sprite.Sprite):
 
 
 class OnKillParticle(pygame.sprite.Sprite):
-    images = [pygame.transform.scale(pygame.image.load('onkillparticle.png'), (3, 3))]
+    images = [pygame.transform.scale(pygame.image.load('data/images/onkillparticle.png'), (3, 3))]
     for scale in (3, 5, 7):
         images.append(pygame.transform.scale(images[0], (scale, scale)))
 
