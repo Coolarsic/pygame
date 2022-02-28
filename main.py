@@ -14,6 +14,8 @@ player = None
 
 tile_width = tile_height = 36
 
+curlevel = 1
+
 
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
@@ -42,6 +44,39 @@ fone_music.play()
 pausebutton = pygame.transform.scale(pygame.image.load('data/images/pausebutton.png'), (40, 40))
 colorkey = pausebutton.get_at((0, 0))
 pausebutton.set_colorkey(colorkey)
+
+def game_over_screen():
+    font = pygame.font.Font('data/fonts/pix.ttf', 50)
+    bg = pygame.transform.scale(pygame.image.load('data/images/game_over.png'), (1000, 600))
+    screen.blit(bg, (0, 0))
+    ShadowText(screen, "PRESS ANY KEY TO RETURN", 60, 180, 500, font=font,
+               drop_color=pygame.color.Color(128, 128, 128), color=pygame.color.Color(255, 255, 255))
+    pygame.display.update()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if curlevel == 1:
+                    level_1()
+                elif curlevel == 2:
+                    level_2()
+                elif curlevel == 3:
+                    level_3()
+                elif curlevel == 4:
+                    level_4()
+                draw_intro()
+
+
+def game_passed_screen():
+    font = pygame.font.Font('data/fonts/pix.ttf', 50)
+    bg = pygame.transform.scale(pygame.image.load('data/images/game_passed.png'), (1000, 600))
+    screen.blit(bg, (0, 0))
+    ShadowText(screen, "PRESS ANY KEY FOR MAIN MENU", 60, 160, 500, font=font,
+               drop_color=pygame.color.Color(128, 128, 128), color=pygame.color.Color(255, 255, 255))
+    pygame.display.update()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                return
 
 
 def help_window():
@@ -199,24 +234,49 @@ def pausescreen():
 
 
 def level_1():
+    [a.kill() for a in tiles_group]
+    [a.kill() for a in brokentiles_group]
+    [a.kill() for a in monsters]
+    [a.kill() for a in boss_group]
+    [a.kill() for a in portal_group]
     global player, can_spawn
     pistol = Weapon(28, 5, 'pistol')
     pygame.display.set_mode([1000, 600])
-    zast = pygame.image.load('data/images/zastavka1.jpg')
-    screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
-    pygame.display.flip()
-    time.sleep(4)
+    brighten = 255
+    while True:
+        zast = pygame.image.load('data/images/zastavka1.jpg')
+        zast.fill((brighten, brighten, brighten), special_flags=pygame.BLEND_RGB_ADD)
+        screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
+        pygame.display.update()
+        brighten -= 1
+        time.sleep(0.001)
+        if brighten == 0:
+            break
+    time.sleep(1)
+    while True:
+        zast = pygame.image.load('data/images/zastavka1.jpg')
+        zast.fill((brighten, brighten, brighten), special_flags=pygame.BLEND_RGB_ADD)
+        screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
+        pygame.display.update()
+        brighten += 1
+        time.sleep(0.001)
+        if brighten == 255:
+            break
     player, level_x, level_y, portal = generate_level(load_level('/levels/level_1.txt'))
     pygame.display.flip()
     camera = Camera()
     itr = 0
     while True:
+        if player.is_dead:
+            game_over_screen()
+        if brighten > 0:
+            brighten -= 3
         bg = pygame.transform.scale(pygame.image.load(f'data/images/space-pixel-art-{itr}.png'), [1000, 600])
         screen.blit(bg, (0, 0))
         screen.blit(pausebutton, (0, 0))
         all_sprites.draw(screen)
         all_sprites.update()
-
+        screen.fill((brighten, brighten, brighten), special_flags=pygame.BLEND_RGB_ADD)
         for i in pygame.event.get():
             if i.type == pygame.MOUSEBUTTONDOWN and screen.blit(pygame.transform.scale(pausebutton, [40, 40]), (0, 0)).collidepoint(pygame.mouse.get_pos()):
                 pausescreen()
@@ -238,8 +298,12 @@ def level_1():
             can_spawn = False
         if pygame.sprite.collide_mask(player, portal):
             level_2()
+            break
+    return
 
 def level_2():
+    global curlevel
+    curlevel = 2
     [a.kill() for a in tiles_group]
     [a.kill() for a in brokentiles_group]
     [a.kill() for a in monsters]
@@ -248,10 +312,26 @@ def level_2():
     global player, can_spawn
     shotgun = Weapon(56, 10, 'shotgun')
     pygame.display.set_mode([1000, 600])
-    zast = pygame.image.load('data/images/zastavka2.jpg')
-    screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
-    pygame.display.flip()
-    time.sleep(4)
+    brighten = 255
+    while True:
+        zast = pygame.image.load('data/images/zastavka2.jpg')
+        zast.fill((brighten, brighten, brighten), special_flags=pygame.BLEND_RGB_ADD)
+        screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
+        pygame.display.update()
+        brighten -= 1
+        time.sleep(0.001)
+        if brighten == 0:
+            break
+    time.sleep(1)
+    while True:
+        zast = pygame.image.load('data/images/zastavka2.jpg')
+        zast.fill((brighten, brighten, brighten), special_flags=pygame.BLEND_RGB_ADD)
+        screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
+        pygame.display.update()
+        brighten += 1
+        time.sleep(0.001)
+        if brighten == 255:
+            break
     player1, level_x, level_y, portal = generate_level(load_level('/levels/level_2.txt'))
     player.rect = player1.rect
     player1.kill()
@@ -259,12 +339,16 @@ def level_2():
     camera = Camera()
     itr = 0
     while True:
+        if player.is_dead:
+            game_over_screen()
+        if brighten > 0:
+            brighten -= 3
         bg = pygame.transform.scale(pygame.image.load('data/images/location2.png'), [1000, 600])
         screen.blit(bg, (0, 0))
         screen.blit(pausebutton, (0, 0))
         all_sprites.draw(screen)
         all_sprites.update()
-
+        screen.fill((brighten, brighten, brighten), special_flags=pygame.BLEND_RGB_ADD)
         for i in pygame.event.get():
             if i.type == pygame.MOUSEBUTTONDOWN and screen.blit(pygame.transform.scale(pausebutton, [40, 40]), (0, 0)).collidepoint(pygame.mouse.get_pos()):
                 pausescreen()
@@ -278,9 +362,13 @@ def level_2():
         clock.tick(30)
         if pygame.sprite.collide_mask(player, portal):
             level_3()
+            break
+    return
 
 
 def level_3():
+    global curlevel
+    curlevel = 3
     [a.kill() for a in tiles_group]
     [a.kill() for a in brokentiles_group]
     [a.kill() for a in monsters]
@@ -288,10 +376,26 @@ def level_3():
     [a.kill() for a in portal_group]
     global player, can_spawn
     pygame.display.set_mode([1000, 600])
-    zast = pygame.image.load('data/images/zastavka3.jpg')
-    screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
-    pygame.display.flip()
-    time.sleep(4)
+    brighten = 255
+    while True:
+        zast = pygame.image.load('data/images/zastavka3.jpg')
+        zast.fill((brighten, brighten, brighten), special_flags=pygame.BLEND_RGB_ADD)
+        screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
+        pygame.display.update()
+        brighten -= 1
+        time.sleep(0.001)
+        if brighten == 0:
+            break
+    time.sleep(1)
+    while True:
+        zast = pygame.image.load('data/images/zastavka3.jpg')
+        zast.fill((brighten, brighten, brighten), special_flags=pygame.BLEND_RGB_ADD)
+        screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
+        pygame.display.update()
+        brighten += 1
+        time.sleep(0.001)
+        if brighten == 255:
+            break
     player1, level_x, level_y, portal = generate_level(load_level('/levels/level_3.txt'))
     player.rect = player1.rect
     player1.kill()
@@ -303,9 +407,16 @@ def level_3():
     needportal = True
     font = pygame.font.Font('data/fonts/pix.ttf', 30)
     while True:
+        if player.is_dead:
+            game_over_screen()
+        if brighten > 0:
+            brighten -= 3
+        if player.is_dead:
+            game_over_screen()
         screen.blit(bg, (0, 0))
         all_sprites.draw(screen)
         all_sprites.update()
+        screen.fill((brighten, brighten, brighten), special_flags=pygame.BLEND_RGB_ADD)
         if boss.is_dead is False:
             text = font.render(f'Hp: {boss.hp} / 1000', False, pygame.color.Color(255, 255, 255))
             screen.blit(pausebutton, (0, 0))
@@ -319,14 +430,81 @@ def level_3():
             elif i.type == pygame.KEYDOWN:
                 player.update()
         camera.update(player)
-
         for sprite in all_sprites:
             camera.apply(sprite)
         pygame.display.flip()
         clock.tick(30)
         if boss.is_dead and needportal:
-            portal1 = Portal(53, 17)
+            portal1 = Portal(52, 16)
             needportal = False
+        if boss.is_dead and pygame.sprite.collide_mask(player, portal1):
+            level_4()
+            break
+    return
+
+
+def level_4():
+    global curlevel
+    curlevel = 4
+    [a.kill() for a in tiles_group]
+    [a.kill() for a in brokentiles_group]
+    [a.kill() for a in monsters]
+    [a.kill() for a in boss_group]
+    [a.kill() for a in portal_group]
+    global player, can_spawn
+    pygame.display.set_mode([1000, 600])
+    brighten = 255
+    while True:
+        zast = pygame.image.load('data/images/zastavka4.jpg')
+        zast.fill((brighten, brighten, brighten), special_flags=pygame.BLEND_RGB_ADD)
+        screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
+        pygame.display.update()
+        brighten -= 1
+        time.sleep(0.001)
+        if brighten == 0:
+            break
+    time.sleep(1)
+    while True:
+        zast = pygame.image.load('data/images/zastavka4.jpg')
+        zast.fill((brighten, brighten, brighten), special_flags=pygame.BLEND_RGB_ADD)
+        screen.blit(pygame.transform.scale(zast, [1000, 600]), (0, 0))
+        pygame.display.update()
+        brighten += 1
+        time.sleep(0.001)
+        if brighten == 255:
+            break
+    player1, level_x, level_y, portal = generate_level(load_level('/levels/level_4.txt'))
+    player.rect = player1.rect
+    player1.kill()
+    pygame.display.flip()
+    camera = Camera()
+    font = pygame.font.Font('data/fonts/pix.ttf', 30)
+    itr1 = 0
+    while True:
+        if player.is_dead:
+            game_over_screen()
+        if brighten > 0:
+            brighten -= 3
+        bg = pygame.transform.scale(pygame.image.load(f'data/images/space-pixel-art-{itr1}.png'), [1000, 600])
+        screen.blit(bg, (0, 0))
+        all_sprites.draw(screen)
+        all_sprites.update()
+        screen.fill((brighten, brighten, brighten), special_flags=pygame.BLEND_RGB_ADD)
+        for i in pygame.event.get():
+            if i.type == pygame.MOUSEBUTTONDOWN and screen.blit(pygame.transform.scale(pausebutton, [40, 40]),
+                                                                (0, 0)).collidepoint(pygame.mouse.get_pos()):
+                pausescreen()
+            elif i.type == pygame.KEYDOWN:
+                player.update()
+        camera.update(player)
+        for sprite in all_sprites:
+            camera.apply(sprite)
+        pygame.display.flip()
+        clock.tick(30)
+        if pygame.sprite.collide_mask(player, portal):
+            game_passed_screen()
+            break
+    return
 
 
 def ShadowText(screen, text, size, x, y, color=(150,150,255), drop_color=(100,100,200), font=None, offset=5):
